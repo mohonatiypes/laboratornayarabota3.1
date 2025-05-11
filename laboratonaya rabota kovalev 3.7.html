@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Стрелочный индикатор</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .indicator-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .indicator {
+            width: 100%;
+            height: 60px;
+            position: relative;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .scale {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .scale-mark {
+            flex: 1;
+            height: 100%;
+            border-right: 1px solid #ccc;
+            position: relative;
+        }
+
+        .scale-mark:last-child {
+            border-right: none;
+        }
+
+        .scale-number {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+        }
+
+        .arrow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #3498db;
+            transform: translateX(-50%);
+            transition: left 0.5s ease;
+            z-index: 2;
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            max-width: 350px;
+        }
+
+        .key {
+            padding: 20px 0;
+            text-align: center;
+            background-color: #3498db;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.2s;
+            aspect-ratio: 1;
+            min-height: 60px;
+        }
+
+        .key:hover {
+            background-color: #2980b9;
+        }
+
+        .key:active {
+            transform: scale(0.95);
+        }
+
+        .current-value {
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* Красный цвет при значениях > 5 */
+        body.high-value {
+            background-color: #ffebee;
+        }
+
+        .indicator.high-value {
+            background-color: #ffcdd2;
+        }
+
+        .arrow.high-value {
+            border-top-color: #e53935;
+        }
+    </style>
+</head>
+<body>
+    <div class="current-value">Текущее значение: <span id="value-display">0</span></div>
+    
+    <div class="indicator-container">
+        <div class="indicator" id="indicator">
+            <div class="scale">
+                <div class="scale-mark"><span class="scale-number">0</span></div>
+                <div class="scale-mark"><span class="scale-number">1</span></div>
+                <div class="scale-mark"><span class="scale-number">2</span></div>
+                <div class="scale-mark"><span class="scale-number">3</span></div>
+                <div class="scale-mark"><span class="scale-number">4</span></div>
+                <div class="scale-mark"><span class="scale-number">5</span></div>
+                <div class="scale-mark"><span class="scale-number">6</span></div>
+                <div class="scale-mark"><span class="scale-number">7</span></div>
+                <div class="scale-mark"><span class="scale-number">8</span></div>
+                <div class="scale-mark"><span class="scale-number">9</span></div>
+            </div>
+            <div class="arrow" id="arrow"></div>
+        </div>
+    </div>
+
+    <div class="keyboard">
+        <div class="key" data-value="0">0</div>
+        <div class="key" data-value="1">1</div>
+        <div class="key" data-value="2">2</div>
+        <div class="key" data-value="3">3</div>
+        <div class="key" data-value="4">4</div>
+        <div class="key" data-value="5">5</div>
+        <div class="key" data-value="6">6</div>
+        <div class="key" data-value="7">7</div>
+        <div class="key" data-value="8">8</div>
+        <div class="key" data-value="9">9</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const arrow = document.getElementById('arrow');
+            const valueDisplay = document.getElementById('value-display');
+            const indicator = document.getElementById('indicator');
+            const keys = document.querySelectorAll('.key');
+            const body = document.body;
+
+            let currentValue = 0;
+
+            // Функция для обновления позиции стрелки
+            function updateArrow(value) {
+                const container = document.querySelector('.indicator');
+                const containerWidth = container.offsetWidth;
+                const stepWidth = containerWidth / 10; // Теперь делим на 10, т.к. 10 делений
+                const position = value * stepWidth + stepWidth / 2; // Центрируем стрелку относительно деления
+
+                arrow.style.left = `${position}px`;
+                valueDisplay.textContent = value;
+                currentValue = value;
+
+                const high = value > 5;
+                body.classList.toggle('high-value', high);
+                indicator.classList.toggle('high-value', high);
+                arrow.classList.toggle('high-value', high);
+            }
+
+            // Обработчики кнопок
+            keys.forEach(key => {
+                key.addEventListener('click', function() {
+                    const value = parseInt(this.getAttribute('data-value'));
+                    updateArrow(value);
+                });
+            });
+
+            // Обработка нажатий клавиш
+            document.addEventListener('keydown', function(e) {
+                const key = e.key;
+                if (key >= '0' && key <= '9') {
+                    const value = parseInt(key);
+                    updateArrow(value);
+                }
+            });
+
+            // Обновить при изменении размера окна
+            window.addEventListener('resize', () => updateArrow(currentValue));
+
+            // Инициализация
+            updateArrow(0);
+        });
+    </script>
+</body>
+</html>
